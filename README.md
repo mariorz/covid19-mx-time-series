@@ -1,36 +1,26 @@
 # covid19-mx-time-series
 
-FIXME: description
+This project generates time series data for the covid19 epideic for every state in Mexico.
 
-## Installation
+Mexico's Secretaría de Salud publishes daily tables (as PDFs) of confirmed and suspected cases. 
+These files are already transcribed into more parsable formats by at least a couple of great projects:
+* https://github.com/guzmart/covid19_mex
+* https://serendipia.digital/2020/03/datos-abiertos-sobre-casos-de-coronavirus-covid-19-en-mexico/
 
-Download from http://example.com/FIXME.
+Unfortantly these tables do not include deaths by state. 
 
-## Usage
+Secretaría de Salud does publish an interactive map which include all the data for each state which they update daily at: https://ncov.sinave.gob.mx/mapa.aspx
 
-FIXME: explanation
+We extract the JSON source file used by this map daily, and use that to generate CSV files that include all relevant counts for each state in Mexico as a time series.
 
-    $ java -jar covid19-mx-time-series-0.1.0-standalone.jar [args]
+The files are located in the [data directory](https://github.com/mariorz/covid19-mx-time-series/tree/master/data)
+* covid19_deaths_mx.csv
+* covid19_confirmed_mx.csv
+* covid19_negatives_mx.csv
+* covid19_suspects_mx.csv
 
-## Options
 
-FIXME: listing of options this app accepts.
-
-## Examples
-
-...
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
-
-## License
-
-Copyright © 2020 FIXME
-
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+### To Do
+* Get time series for previous days using other projects
+* Is there any way to get the death counts by province for the previous days?
+* Add coordinates for each state row
