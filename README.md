@@ -22,5 +22,5 @@ The files are located in the [data directory](https://github.com/mariorz/covid19
 
 ### To Do
 * Get time series for previous days using other projects
-* Is there any way to get the death counts by province for the previous days?
-* Add coordinates for each state row
+* Is there any way to get the death counts by state for the previous days?
+* Add coordinates for each state
