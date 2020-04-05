@@ -7,7 +7,7 @@ These files are already transcribed into more parsable formats by at least a cou
 * https://github.com/guzmart/covid19_mex
 * https://serendipia.digital/2020/03/datos-abiertos-sobre-casos-de-coronavirus-covid-19-en-mexico/
 
-Unfortantly these tables do not include deaths by state. 
+Unfortunately these tables do not include deaths by state. 
 
 Secretaría de Salud does publish an interactive map which include all the data for each state which they update daily at: https://ncov.sinave.gob.mx/mapa.aspx
 
