@@ -1,33 +1,33 @@
-Estado,02-04-2020,03-04-2020,04-04-2020,05-04-2020
-Aguascalientes,47,48,49,49
-Baja California,40,52,54,69
-Baja California Sur,19,21,27,28
-Campeche,5,6,8,8
-Coahuila,62,70,72,82
-Colima,3,4,4,4
-Chiapas,15,18,19,25
-Chihuahua,11,12,13,15
-Ciudad de México,327,384,469,560
-Durango,8,8,10,12
-Guanajuato,50,52,53,53
-Guerrero,22,24,25,30
-Hidalgo,26,30,32,34
-Jalisco,104,116,120,123
-México,171,177,180,204
-Michoacán,24,24,29,30
-Morelos,9,12,14,15
-Nayarit,8,8,9,9
-Nuevo León,84,85,88,91
-Oaxaca,22,22,22,25
-Puebla,100,109,125,147
-Queretaro,32,35,36,38
-Quintana Roo,56,65,75,86
-San Luis Potosí,33,35,35,37
-Sinaloa,42,51,74,90
-Sonora,21,22,27,28
-Tabasco,62,73,83,97
-Tamaulipas,13,16,20,26
-Tlaxcala,5,8,9,11
-Veracruz,29,35,37,40
-Yucatán,53,59,62,67
-Zacatecas,7,7,10,10
+Estado,02-04-2020,03-04-2020,04-04-2020,05-04-2020,06-04-2020
+Aguascalientes,47,48,49,49,49
+Baja California,40,52,54,69,111
+Baja California Sur,19,21,27,28,54
+Campeche,5,6,8,8,9
+Coahuila,62,70,72,82,102
+Colima,3,4,4,4,4
+Chiapas,15,18,19,25,26
+Chihuahua,11,12,13,15,22
+Ciudad de México,327,384,469,560,609
+Durango,8,8,10,12,12
+Guanajuato,50,52,53,53,58
+Guerrero,22,24,25,30,32
+Hidalgo,26,30,32,34,35
+Jalisco,104,116,120,123,126
+México,171,177,180,204,261
+Michoacán,24,24,29,30,33
+Morelos,9,12,14,15,17
+Nayarit,8,8,9,9,10
+Nuevo León,84,85,88,91,93
+Oaxaca,22,22,22,25,27
+Puebla,100,109,125,147,156
+Queretaro,32,35,36,38,40
+Quintana Roo,56,65,75,86,115
+San Luis Potosí,33,35,35,37,37
+Sinaloa,42,51,74,90,97
+Sonora,21,22,27,28,30
+Tabasco,62,73,83,97,107
+Tamaulipas,13,16,20,26,31
+Tlaxcala,5,8,9,11,14
+Veracruz,29,35,37,40,41
+Yucatán,53,59,62,67,72
+Zacatecas,7,7,10,10,9
