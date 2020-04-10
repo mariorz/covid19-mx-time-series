@@ -7,6 +7,7 @@
 (defn parse-int [s]
   (Integer/parseInt (re-find #"\A-?\d+" s)))
 
+
 (defn fetch-daily-states
   []
   (let [map-url "https://ncov.sinave.gob.mx/Mapa.aspx/Grafica22"
@@ -24,7 +25,7 @@
   [date data]
   (let [existing (slurp "data/states.edn")
         current (if (= existing "") []  (read-string existing))]
-    (spit "states.edn" (pr-str
+    (spit "data/states.edn" (pr-str
                         (concat current
                                 [{:date date :data data}])))))
 
