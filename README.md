@@ -19,8 +19,14 @@ The files are located in the [data directory](https://github.com/mariorz/covid19
 * covid19_negatives_mx.csv
 * covid19_suspects_mx.csv
 
+Date format used is dd/mm/yyyy
 
-### To Do
-* Get time series for previous days using other projects
-* Is there any way to get the death counts by state for the previous days?
+#### Missing Data 
+Data for days prior to when this project started running (02-04-2020) were reconstructed from [carranco-sga/Mexico-COVID-19](https://github.com/carranco-sga/Mexico-COVID-19), another project that transcribes oficial pdf data into csvs, with the following caveats:
+1) Missing suspect cases from 29-02-2020 to 13-03-2020, as per https://github.com/carranco-sga/Mexico-COVID-19/issues/1
+2) Thare is no tracking of negative cases
+
+#### To Do
+* Get negative cases for previous days using other projects?
+* Get mising suspects 29-02-2020 to 13-03-2020
 * Add coordinates for each state
