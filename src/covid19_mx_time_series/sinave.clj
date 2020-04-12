@@ -9,9 +9,6 @@
 
 
 
-(defn parse-int [s]
-  (Integer/parseInt (re-find #"\A-?\d+" s)))
-
 
 (defn fetch-daily-states
   []
@@ -22,10 +19,16 @@
     (json/read-str (:d (json/read-json (:body data))))))
 
 
-(defn check-state-totals
+(defn total-deaths
+  [states]
+  (apply + (map (comp #(Integer/parseInt %) #(nth % 7))
+                states)))
+
+
+(defn current-deaths
   []
-  (apply + (map (comp parse-int #(nth % 7))
-                (fetch-daily-states))))
+  (total-deaths (fetch-daily-states)))
+
 
 
 (defn write-daily-states
@@ -36,15 +39,18 @@
                              (concat current
                                      [{:date date :data data}])))))
 
+(defn day-mx
+  []
+  (f/unparse
+   (f/formatter "dd-MM-yyyy")
+   (t/minus (l/local-now) (t/hours 6))))
+
 
 (defn fetch-and-write-daily
   []
   (let [s (fetch-daily-states)
-        yesterday (f/unparse
-                   (f/formatter "dd-MM-yyyy")
-                   (t/minus (l/local-now) (t/hours 6)))
-        _ (println yesterday)]
-    (write-daily-states yesterday s)))
+        dmx (day-mx)]
+    (write-daily-states dmx s)))
 
 
 (defn read-daily-states
