@@ -27,8 +27,11 @@
       (do (println "updating...")
           (sinave/write-all-csvs)
           (println "done")
-          (send-kbmsg (str "updated to: " dmx " " dcount)))
-      (send-kbmsg (str "no update: " last-date " " ldc)))))
+          (send-kbmsg (str "@mariorz updated to: " dmx " " dcount)))
+      (send-kbmsg (str "@mariorz no update: " last-date " " ldc)))
+    ;; shutdown bg thread as per
+    ;; https://clojureverse.org/t/why-doesnt-my-program-exit/3754/4
+    (shutdown-agents)))
 
 
 (defn -main
