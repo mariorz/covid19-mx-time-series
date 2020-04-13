@@ -1,5 +1,6 @@
 (ns covid19-mx-time-series.core
-  (:require [covid19-mx-time-series.sinave :as sinave]
+  (:require [clojure.java.shell :as shell]
+            [covid19-mx-time-series.sinave :as sinave]
             [covid19-mx-time-series.carranco :as carranco]))
 
 
@@ -8,5 +9,31 @@
 ;; as per https://github.com/carranco-sga/Mexico-COVID-19/issues/1
 ;; 2) negative cases before 02-04-2020
 
+(defn send-kbmsg
+  [msg]
+  (shell/sh "keybase" "chat" "send" "covid19mx" msg))
+
+
+(defn run-write-with-check
+  []
+  (let [dcount (sinave/current-deaths)
+        dmx (sinave/day-mx)
+        r (sinave/read-daily-states)
+        last-date (:date (last r))
+        ldc (sinave/total-deaths (:data (last r)))
+        _ (println "last:" last-date ldc)
+        _ (println " now:" dmx dcount)]
+    (if (and (not= dcount ldc) (not= last-date dmx))
+      (do (println "updating...")
+          (sinave/write-all-csvs)
+          (println "done")
+          (send-kbmsg (str "updated to: " dmx " " dcount)))
+      (send-kbmsg (str "no update: " last-date " " ldc)))
+    ;; shutdown bg thread as per
+    ;; https://clojureverse.org/t/why-doesnt-my-program-exit/3754/4
+    (shutdown-agents)))
+
+
 (defn -main
-  [& args])
+  [& args]
+  (run-write-with-check))
