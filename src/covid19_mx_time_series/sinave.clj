@@ -139,4 +139,4 @@
                 {:valfn state-deaths
                  :file "covid19_deaths_mx.csv"}]
         dir "data/"]
-    (map #(write-timeseries-csv ds (:valfn %) (str dir (:file %))) valfns)))
+    (doall (map #(write-timeseries-csv ds (:valfn %) (str dir (:file %))) valfns))))
