@@ -1,6 +1,6 @@
 # covid19-mx-time-series
 
-This project generates time series data for the covid19 epideic for every state in Mexico.
+This project generates time series data for the covid19 epidemic for every state in Mexico.
 
 Mexico's Secretaría de Salud publishes daily tables (as PDFs) of confirmed and suspected cases. 
 These files are already transcribed into more parsable formats by at least a couple of great projects:
