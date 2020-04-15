@@ -8,10 +8,10 @@
             [covid19-mx-time-series.sinave :as sinave]))
 
 
-
 (def bigtable
   (csv/read-csv
    (slurp "resources/200414COVID19MEXICO.csv")))
+
 
 
 (def state-codes
@@ -49,7 +49,18 @@
    "Zacatecas"])
 
 
-(defn death-date
+
+(defn date-admission
+  [r]
+  (nth r 9))
+
+
+(defn date-symptoms
+  [r]
+  (nth r 10))
+
+
+(defn date-death
   [r]
   (nth r 11))
 
@@ -69,6 +80,26 @@
   (nth r 3))
 
 
+(defn sex
+  [r]
+  (case (nth r 4)
+    "1" "F"
+    "2" "M"
+    "99" "NS"))
+
+
+(defn pregnant
+  "Returns T=True, F=False, NA=Not Applicable,
+  U=Unknown, NS, Not Specified"
+  [r]
+  (case (nth r 16)
+    "1" "T"
+    "2" "F"
+    "97" "NA"
+    "98" "U"
+    "99" "NS"))
+
+
 (defn state
   [r]
   (nth state-codes
@@ -83,7 +114,7 @@
 (defn deaths
   [csvdata]
   (filter #(and (= (resultado %) "1")
-                (not= (death-date %) "9999-99-99"))
+                (not= (date-death %) "9999-99-99"))
           (rest csvdata)))
 
 
@@ -121,6 +152,15 @@
   [csvdata]
   (frequencies (map state (negatives csvdata))))
 
+
+
+#_(->> (deaths bigtable)
+       (map (juxt date-symptoms date-death))
+       (map (fn [[s d]] [(parse-date s) (parse-date d)]))
+       (map (fn [[s d]] (t/interval s d)))
+       (map t/in-days)
+       frequencies
+       (into (sorted-map)))
 
 
 
