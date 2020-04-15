@@ -83,6 +83,35 @@
   (nth day-value 7))
 
 
+(defn count-by-state
+  [states catfn]
+  (into {}
+        (map (juxt second (comp #(Integer/parseInt %) catfn))
+             states)))
+
+
+(defn death-counts
+  [states]
+  (count-by-state states state-deaths))
+
+
+(defn confirmed-counts
+  [states]
+  (count-by-state states state-confirmed))
+
+
+(defn suspect-counts
+  [states]
+  (count-by-state states state-suspects))
+
+
+(defn negative-counts
+  [states]
+  (count-by-state states state-negatives))
+
+
+
+
 (def staterows (:data (first (read-daily-states))))
 
 
