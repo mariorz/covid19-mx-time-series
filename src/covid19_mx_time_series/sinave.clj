@@ -9,14 +9,14 @@
 
 
 
-
+;; TODO assert count is 32
 (defn fetch-daily-states
   []
   (let [map-url "https://ncov.sinave.gob.mx/Mapa.aspx/Grafica22"
         headers {:headers
                  {"Content-Type" "application/json; charset=utf-8"}}
         data (http/post map-url headers)]
-    (json/read-str (:d (json/read-json (:body data))))))
+    (filter #(not= (second %) "NACIONAL") (json/read-str (:d (json/read-json (:body data)))))))
 
 
 (defn total-deaths
