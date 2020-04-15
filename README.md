@@ -1,6 +1,6 @@
 # covid19-mx-time-series
 
-This project generates time series data for the covid19 epideic for every state in Mexico.
+This project generates time series data for the covid19 epidemic for every state in Mexico.
 
 Mexico's Secretaría de Salud publishes daily tables (as PDFs) of confirmed and suspected cases. 
 These files are already transcribed into more parsable formats by at least a couple of great projects:
@@ -25,6 +25,9 @@ Date format used is dd/mm/yyyy
 Data for days prior to when this project started running (02-04-2020) were reconstructed from [carranco-sga/Mexico-COVID-19](https://github.com/carranco-sga/Mexico-COVID-19), another project that transcribes oficial pdf data into csvs, with the following caveats:
 1) Missing suspect cases from 29-02-2020 to 13-03-2020, as per https://github.com/carranco-sga/Mexico-COVID-19/issues/1
 2) Thare is no tracking of negative cases
+
+#### Incorrect Data
+On April 12th, The Secretaría de Salud published data that contradicts the **negative cases** data published on the day before by showing a reduction in numbers for a few states. This appears to be some sort of error on their part as even their presented numbers for total studied cases [fail to add up correctly](https://pbs.twimg.com/media/EVfp5M7XsAAyCy1?format=jpg&name=medium).
 
 #### To Do
 * Get negative cases for previous days using other projects?
