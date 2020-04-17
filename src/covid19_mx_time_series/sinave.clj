@@ -12,7 +12,7 @@
 ;; TODO assert count is 32
 (defn fetch-daily-states
   []
-  (let [map-url "https://ncov.sinave.gob.mx/Mapa.aspx/Grafica22"
+  (let [map-url "https://covid19.sinave.gob.mx/Mapa.aspx/Grafica22"
         headers {:headers
                  {"Content-Type" "application/json; charset=utf-8"}}
         data (http/post map-url headers)]
@@ -34,7 +34,7 @@
 (defn write-daily-states
   [date data]
   (let [existing (slurp "data/states.edn")
-        current (if (= existing "") []  (read-string existing))]
+        current (if (= existing "") []  (clojure.tools.reader.edn/read-string existing))]
     (spit "data/states.edn" (pr-str
                              (concat current
                                      [{:date date :data data}])))))
@@ -55,7 +55,7 @@
 
 (defn read-daily-states
   []
-  (read-string (slurp "data/states.edn")))
+  (clojure.tools.reader.edn/read-string (slurp "data/states.edn")))
 
 
 (defn state-name
