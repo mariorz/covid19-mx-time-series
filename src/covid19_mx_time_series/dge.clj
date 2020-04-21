@@ -11,7 +11,7 @@
 
 (def bigtable
   (csv/read-csv
-   (slurp "resources/200414COVID19MEXICO.csv")))
+   (slurp "resources/200420COVID19MEXICO.csv")))
 
 
 (def state-codes
@@ -51,23 +51,27 @@
 
 (defn death-date
   [r]
-  (nth r 11))
+  (nth r 12))
 
 
 (defn resultado
   [r]
-  (nth r 29))
+  (nth r 30))
 
 
 (defn entidad-res
   [r]
-  (nth r 6))
+  (nth r 7))
 
 
 (defn entidad-um
   [r]
-  (nth r 3))
+  (nth r 4))
 
+
+(defn intubated
+  [r]
+  (nth r 13))
 
 (defn state
   [r]
@@ -121,7 +125,25 @@
   [csvdata]
   (frequencies (map state (negatives csvdata))))
 
+(defn make-row
+  [row-bp deaths confirmed suspects negatives]
+  (let [state (second row-bp)
+        d (str (get deaths state))
+        c (str (get confirmed state))
+        s (str (get suspects state))
+        n (str (get negatives state))]
+    (concat row-bp [d c s n])))
 
+(defn mock-sinave-record
+  [date csvdata]
+  (let [deaths (death-counts csvdata)
+        confirmed (confirmed-counts csvdata)
+        suspects (suspect-counts csvdata)
+        negatives (negative-counts csvdata)
+        r (clojure.tools.reader.edn/read-string (slurp "data/states.edn"))
+        bp (map #(subvec % 0 4 ) (:data (first r)))
+        d (map #(make-row % deaths confirmed suspects negatives) bp)]
+    {:date date :data d}))
 
 
 #_(def s (sinave/fetch-daily-states))
