@@ -1,17 +1,26 @@
 # covid19-mx-time-series
 
-This project generates time series data for the covid19 epidemic for every state in Mexico.
+This project generates time series data for the COVID-19 epidemic for every state in Mexico.
 
-Mexico's Secretaría de Salud publishes daily tables (as PDFs) of confirmed and suspected cases. 
-These files are already transcribed into more parsable formats by at least a couple of great projects:
+The techniques we use for generating the time series have evolved as the availability of oficial and semi-oficial data has changed.
+
+At first Mexico's Secretaría de Salud published only daily reports (as PDFs) of confirmed and suspected cases. 
+
+These files were readily transcribed into more parsable formats by at least a couple of great projects:
 * https://github.com/guzmart/covid19_mex
 * https://serendipia.digital/2020/03/datos-abiertos-sobre-casos-de-coronavirus-covid-19-en-mexico/
 
-Unfortunately these tables do not include deaths by state. 
+Unfortunately these reports did not include deaths for each state in Mexico. 
 
-Secretaría de Salud does publish an interactive map which include all the data for each state which they update daily at: https://ncov.sinave.gob.mx/mapa.aspx
+Secretaría de Salud also published an interactive map which included the complete accumulated tolls for each state, which they would update daily at: https://ncov.sinave.gob.mx/mapa.aspx
 
-We extract the JSON source file used by this map daily, and use that to generate CSV files that include all relevant counts for each state in Mexico as a time series.
+We extracted the JSON source file used by this map daily, and used that to generate CSV files that include all relevant counts for each state in Mexico as time series.
+
+As of March 20th, this map, and its JSON sourced file, has been replaced by a new map which only displays information for the different incidence rates, but no total counts.
+
+However, Secretaría de Salud has stared publishing a daily snapshot file with the disaggregated information for each patient case it studies at https://www.gob.mx/salud/documentos/datos-abiertos-152127
+
+We now use these daily snapshots to generate our different time-series.
 
 The files are located in the [data directory](https://github.com/mariorz/covid19-mx-time-series/tree/master/data)
 * covid19_deaths_mx.csv
