@@ -1,5 +1,7 @@
 (ns covid19-mx-time-series.dge
   (:require [clojure.data]
+            [clj-http.client :as client]
+            [clojure.java.io :as io]
             [clojure.data.csv :as csv]
             [clojure.java.io :as io]
             [clj-time.core :as t]
@@ -8,10 +10,38 @@
             [covid19-mx-time-series.sinave :as sinave]))
 
 
+(defn day-mx
+  []
+  (f/unparse
+   (f/formatter "dd-MM-yyyy")
+   (t/minus (l/local-now) (t/hours 6))))
+
+
+
+(defn fetch-csv
+  []
+  (let [filepath (str "resources/dge." (day-mx) ".csv")
+        dge-url "http://187.191.75.115/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip"
+        stream (->
+                (client/get dge-url {:as :byte-array})
+                (:body)
+                (io/input-stream)
+                (java.util.zip.ZipInputStream.))]
+    (.getNextEntry stream)
+    (clojure.java.io/copy stream (clojure.java.io/file filepath))
+    filepath))
+
 
 (def bigtable
-  (csv/read-csv
-   (slurp "resources/200420COVID19MEXICO.csv")))
+  (delay
+   (let [_ (println "fetching csv zipfile...")
+         filepath (fetch-csv)
+         _ (println "reading csv...")
+         r (csv/read-csv
+            (slurp filepath))]
+     (assert (= (count (first r)) 35)
+             "Column count in DGE file has changed!")
+     r)))
 
 
 (def state-codes
@@ -125,6 +155,7 @@
   [csvdata]
   (frequencies (map state (negatives csvdata))))
 
+
 (defn make-row
   [row-bp deaths confirmed suspects negatives]
   (let [state (second row-bp)
@@ -132,10 +163,11 @@
         c (str (get confirmed state))
         s (str (get suspects state))
         n (str (get negatives state))]
-    (concat row-bp [d c s n])))
+    (concat row-bp [c n s d])))
+
 
 (defn mock-sinave-record
-  [date csvdata]
+  [csvdata]
   (let [deaths (death-counts csvdata)
         confirmed (confirmed-counts csvdata)
         suspects (suspect-counts csvdata)
@@ -143,7 +175,15 @@
         r (clojure.tools.reader.edn/read-string (slurp "data/states.edn"))
         bp (map #(subvec % 0 4 ) (:data (first r)))
         d (map #(make-row % deaths confirmed suspects negatives) bp)]
-    {:date date :data d}))
+    d))
+
+
+
+(defn parse-and-write-daily
+  []
+  (let [dmx (day-mx)
+        d (mock-sinave-record @bigtable)]
+    (sinave/write-daily-states dmx d)))
 
 
 #_(def s (sinave/fetch-daily-states))

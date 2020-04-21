@@ -1,7 +1,5 @@
 (ns covid19-mx-time-series.sinave
   (:require [clj-http.client :as http]
-            [clojure.java.io :as io]
-            [clojure.data.csv :as csv]
             [clojure.data.json :as json]
             [clj-time.core :as t]
             [clj-time.format :as f]
@@ -9,7 +7,6 @@
 
 
 
-;; TODO assert count is 32
 (defn fetch-daily-states
   []
   (let [map-url "https://covid19.sinave.gob.mx/Mapa.aspx/Grafica22"
@@ -22,6 +19,12 @@
 (defn total-deaths
   [states]
   (apply + (map (comp #(Integer/parseInt %) #(nth % 7))
+                states)))
+
+
+(defn total-confirmed
+  [states]
+  (apply + (map (comp #(Integer/parseInt %) #(nth % 4))
                 states)))
 
 
@@ -144,28 +147,4 @@
   (doall (map (comp (fn [x] (nth x state-pos)) :data) daily-states)))
 
 
-(defn write-timeseries-csv
-  [daily-states value-fn filename]
-  (with-open [writer (io/writer filename)]
-    (let [d (map :data daily-states)
-          dates (map :date daily-states)
-          state-vecs (map #(state-vals daily-states %) (range 32))]
-      (csv/write-csv writer
-                     (concat [(concat ["Estado"] dates)]
-                             (map #(make-time-series % value-fn) state-vecs))))))
 
-
-(defn write-all-csvs
-  []
-  (let [_ (fetch-and-write-daily)
-        ds (read-daily-states)
-        valfns [{:valfn state-suspects
-                 :file "covid19_suspects_mx.csv"}
-                {:valfn state-negatives
-                 :file "covid19_negatives_mx.csv"}
-                {:valfn state-confirmed
-                 :file "covid19_confirmed_mx.csv"}
-                {:valfn state-deaths
-                 :file "covid19_deaths_mx.csv"}]
-        dir "data/"]
-    (doall (map #(write-timeseries-csv ds (:valfn %) (str dir (:file %))) valfns))))
