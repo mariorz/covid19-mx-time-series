@@ -1,6 +1,6 @@
 # covid19-mx-time-series
 
-This project generates time series data for the COVID-19 epidemic for every state in Mexico.
+This project generates time series data of the COVID-19 epidemic for every state in Mexico.
 
 The techniques we use for generating the time series have evolved as the availability of oficial and semi-oficial data has changed.
 
@@ -40,5 +40,4 @@ On April 12th, The Secretaría de Salud published data that contradicts the **ne
 
 #### To Do
 * Get negative cases for previous days using other projects?
-* Get mising suspects 29-02-2020 to 13-03-2020
-* Add coordinates for each state
+* Get mising suspect cases 29-02-2020 to 13-03-2020
