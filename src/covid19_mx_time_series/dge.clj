@@ -78,11 +78,29 @@
    "Yucatán"
    "Zacatecas"])
 
+(defn unique-id
+  [r]
+  (nth r 1))
 
 (defn death-date
   [r]
   (nth r 12))
 
+
+(defn admission-date
+  [r]
+  (nth r 10))
+
+
+
+(defn symptoms-date
+  [r]
+  (nth r 11))
+
+
+(defn sector
+  [r]
+  (nth r 3))
 
 (defn resultado
   [r]
@@ -99,14 +117,35 @@
   (nth r 4))
 
 
+(defn- si-no
+  [v]
+  (case v
+    "1" "T"
+    "2" "F"
+     "NA"))
+
+
 (defn intubated
   [r]
-  (nth r 13))
+  (si-no (nth r 13)))
+
+
+
+(defn icu
+  [r]
+  (si-no (nth r 34)))
+
 
 (defn state
   [r]
   (nth state-codes
        (- (Integer/parseInt (entidad-um r)) 1)))
+
+
+(defn residency-state
+  [r]
+  (nth state-codes
+       (- (Integer/parseInt (entidad-res r)) 1)))
 
 
 (defn parse-date
@@ -121,6 +160,31 @@
           (rest csvdata)))
 
 
+(defn deaths-including-suspects
+  [csvdata]
+  (filter #(and (or (= (resultado %) "1")
+                    (= (resultado %) "3"))
+                (not= (death-date %) "9999-99-99"))
+          (rest csvdata)))
+
+
+(defn deaths-suspects
+  [csvdata]
+  (filter #(and (= (resultado %) "3")
+                (not= (death-date %) "9999-99-99"))
+          (rest csvdata)))
+
+
+
+(defn deaths-negatives
+  [csvdata]
+  (filter #(and (= (resultado %) "2")
+                (not= (death-date %) "9999-99-99"))
+          (rest csvdata)))
+
+
+
+
 (defn confirmed
   [csvdata]
   (filter #(= (resultado %) "1") (rest csvdata)))
@@ -131,9 +195,36 @@
   (filter #(= (resultado %) "3") (rest csvdata)))
 
 
+(defn non-negative
+  [csvdata]
+  (filter #(not= (resultado %) "2") (rest csvdata)))
+
+
 (defn negatives
   [csvdata]
   (filter #(= (resultado %) "2") (rest csvdata)))
+
+
+(defn hospitalized-confirmed
+  [csvdata]
+  (filter #(and (= (resultado %) "1")
+                (not= (admission-date %) "9999-99-99"))
+          (rest csvdata)))
+
+
+(defn hospitalized-suspects
+  [csvdata]
+  (filter #(and (= (resultado %) "3")
+                (not= (admission-date %) "9999-99-99"))
+          (rest csvdata)))
+
+
+(defn hospitalized-negatives
+  [csvdata]
+  (filter #(and (= (resultado %) "2")
+                (not= (admission-date %) "9999-99-99"))
+          (rest csvdata)))
+
 
 
 (defn death-counts

@@ -2,6 +2,7 @@
   (:require [clojure.java.shell :as shell]
             [clojure.java.io :as io]
             [clojure.data.csv :as csv]
+            [clj-time.format :as f]
             [covid19-mx-time-series.sinave :as sinave]
             [covid19-mx-time-series.carranco :as carranco]
             [covid19-mx-time-series.dge :as dge]))
@@ -69,12 +70,128 @@
           (println "done")
           (send-kbmsg
            (str "updated to: " current-date " " current-deaths " " current-confirmed)))
-      (send-kbmsg (str "no update: " last-date " " last-deaths " " last-confirmed)))
+      (send-kbmsg (str "no update: " last-date " " last-deaths " " last-confirmed)))))
     ;; shutdown bg thread as per
     ;; https://clojureverse.org/t/why-doesnt-my-program-exit/3754/4
-    (shutdown-agents)))
+
+
+
+
+;;; series generated from last sinave db snapshot
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;; We use the same time frame for all the series
+(def series-dates
+  (delay (rest (first (csv/read-csv (slurp "data/covid19_confirmed_mx.csv"))))))
+
+
+(defn ymd->dmy
+  [date]
+  (f/unparse (f/formatter "dd-MM-yyyy")
+             (f/parse (f/formatter "yyyy-MM-dd") date)))
+
+
+(defn date-row-reducer
+  [datefn statefn]
+  (fn [accum r]
+    (update-in accum [(statefn r)]
+               (fn [old arg] (doall (concat old [arg])))
+               {(ymd->dmy (datefn r)) 1})))
+
+
+(defn series-adder
+  [accum v]
+  (if (last accum)
+    (concat accum [(+ (last accum) v)])
+    [v]))
+
+
+(defn make-series
+  [selected-rows datefn statefn]
+  (->> selected-rows
+       (reduce (date-row-reducer datefn statefn) {})
+       (map (fn [r]
+              {(first r) (apply merge-with + (second r))}))
+       (apply merge)
+       (map (fn [[k v]]
+              (concat [k] (mapv #(get v % 0) @series-dates))))
+       (map (fn [r]
+              (concat [(first r)]
+                      (reduce series-adder [] (rest r)))))
+       (sort-by first)))
+
+
+(defn write-series-csv
+  [rows datefn statefn filename]
+  (with-open [writer (io/writer filename)]
+    (csv/write-csv
+     writer
+     (concat [(concat ["Estado"] @series-dates)]
+             (make-series rows datefn statefn)))))
+
+
+(defn write-full-state-series-csv
+  [statefn dirpath]
+  ;; death confirmed by symptoms,admission,death
+  (write-series-csv (dge/deaths @dge/bigtable) dge/symptoms-date statefn
+                    (str dirpath "deaths_confirmed_by_symptoms_date_mx.csv"))
+  (write-series-csv (dge/deaths @dge/bigtable) dge/admission-date statefn
+                    (str dirpath "deaths_confirmed_by_admission_date_mx.csv"))
+  (write-series-csv (dge/deaths @dge/bigtable) dge/death-date statefn
+                    (str dirpath "deaths_confirmed_by_death_date_mx.csv"))
+  ;; death suspect by symptoms,admission,death
+  (write-series-csv (dge/deaths-suspects @dge/bigtable) dge/symptoms-date statefn
+                    (str dirpath "deaths_suspects_by_symptoms_date_mx.csv"))
+  (write-series-csv (dge/deaths-suspects @dge/bigtable) dge/admission-date statefn
+                    (str dirpath "deaths_suspects_by_admission_date_mx.csv"))
+  (write-series-csv (dge/deaths-suspects @dge/bigtable) dge/death-date statefn
+                    (str dirpath "deaths_suspects_by_death_date_mx.csv"))
+  ;; death negative by symptoms,admission,death
+  (write-series-csv (dge/deaths-negatives @dge/bigtable) dge/symptoms-date statefn
+                    (str dirpath "deaths_negatives_by_symptoms_date_mx.csv"))
+  (write-series-csv (dge/deaths-negatives @dge/bigtable) dge/admission-date statefn
+                    (str dirpath "deaths_negatives_by_admission_date_mx.csv"))
+  (write-series-csv (dge/deaths-negatives @dge/bigtable) dge/death-date statefn
+                    (str dirpath "deaths_negatives_by_death_date_mx.csv"))
+  ;; confirmed by symptoms date
+  (write-series-csv (dge/confirmed @dge/bigtable) dge/symptoms-date statefn
+                    (str dirpath "confirmed_by_symptoms_date_mx.csv"))
+  ;; suspects by symptoms date
+  (write-series-csv (dge/suspects @dge/bigtable) dge/symptoms-date statefn
+                    (str dirpath "suspects_by_symptoms_date_mx.csv"))
+  ;; negatives by symptoms date
+  (write-series-csv (dge/negatives @dge/bigtable) dge/symptoms-date statefn
+                    (str dirpath "negatives_by_symptoms_date_mx.csv"))
+  ;; hospitalized confirmed by symptoms, admission
+  (write-series-csv (dge/hospitalized-confirmed @dge/bigtable) dge/symptoms-date statefn
+                    (str dirpath "hospitalized_confirmed_by_symptoms_date_mx.csv"))
+  (write-series-csv (dge/hospitalized-confirmed @dge/bigtable) dge/admission-date statefn
+                    (str dirpath "hospitalized_confirmed_by_admission_date_mx.csv"))
+  ;; hospitalized suspect by symptoms, admission
+  (write-series-csv (dge/hospitalized-suspects @dge/bigtable) dge/symptoms-date statefn
+                    (str dirpath "hospitalized_suspects_by_symptoms_date_mx.csv"))
+  (write-series-csv (dge/hospitalized-suspects @dge/bigtable) dge/admission-date statefn
+                    (str dirpath "hospitalized_suspects_by_admission_date_mx.csv"))
+  ;; hospitalized negatives by symptoms, admission
+  (write-series-csv (dge/hospitalized-negatives @dge/bigtable) dge/symptoms-date statefn
+                    (str dirpath "hospitalized_suspects_by_symptoms_date_mx.csv"))
+  (write-series-csv (dge/hospitalized-negatives @dge/bigtable) dge/admission-date statefn
+                    (str dirpath "hospitalized_suspects_by_admission_date_mx.csv")))
+
+
+
+
+
 
 
 (defn -main
   [& args]
-  (run-write-with-check))
+  (run-write-with-check)
+  (println "Generating series by hospital states...")
+  (time
+   (write-full-state-series-csv dge/state "data/full/by_hospital_state/"))
+  (println "Generating series by residency states...")
+  (time
+   (write-full-state-series-csv dge/residency-state "data/full/by_residency_state/"))
+  (shutdown-agents))
