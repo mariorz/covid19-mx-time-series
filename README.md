@@ -27,22 +27,22 @@ Each of these directories include the following time series CSV files according 
 
 filename | description
 --------------|--------------
-**confirmed_by_symptoms_date_mx.csv**|Confirmed cases by date of symptoms onset.
-**suspects_by_symptoms_date_mx.csv**|Suspect cases by date of symptoms onset.
-**negatives_by_symptoms_date_mx.csv**|Cases that tested negative by date of symptoms onset.
-**hospitalized_confirmed_by_symptoms_date_mx.csv**|Hospitalized cases confirmed by date of symptoms onset.
-**hospitalized_confirmed_by_admission_date_mx.csv**|Hospitalized cases confirmed by date of hospital admission.
-**hospitalized_suspects_by_symptoms_date_mx.csv**|Hospitalized suspect cases by date of symptoms onset.
-**hospitalized_suspects_by_admission_date_mx.csv**|Hospitalized suspect cases by date of hospital admission.
-**deaths_confirmed_by_symptoms_date_mx.csv**|Confirmed deaths by date of symptoms onset.
-**deaths_confirmed_by_admission_date_mx.csv**|Confirmed deaths by date of hospital admission.
-**deaths_confirmed_by_death_date_mx.csv**|Confirmed deaths by date of death.
-**deaths_suspects_by_symptoms_date_mx.csv**|Suspect deaths by date of symptoms onset.
-**deaths_suspects_by_admission_date_mx.csv**|Suspect deaths by date of hospital admission.
-**deaths_suspects_by_death_date_mx.csv**|Suspect deaths by date of death.
-**deaths_negatives_by_symptoms_date_mx.csv**|Deaths that tested negative by date of symptoms onset.
-**deaths_negatives_by_admission_date_mx.csv**|Deaths that tested negative by date of hospital admission.
-**deaths_negatives_by_death_date_mx.csv**|Deaths that tested negative by date of death.
+**confirmed_by_symptoms_date_mx.csv**|Confirmed cases aggregated by date of symptoms onset.
+**suspects_by_symptoms_date_mx.csv**|Suspect cases aggregated by date of symptoms onset.
+**negatives_by_symptoms_date_mx.csv**|Cases that tested negative aggregated by date of symptoms onset.
+**hospitalized_confirmed_by_symptoms_date_mx.csv**|Hospitalized cases confirmed aggregated by date of symptoms onset.
+**hospitalized_confirmed_by_admission_date_mx.csv**|Hospitalized cases confirmed aggregated by date of hospital admission.
+**hospitalized_suspects_by_symptoms_date_mx.csv**|Hospitalized suspect cases aggregated by date of symptoms onset.
+**hospitalized_suspects_by_admission_date_mx.csv**|Hospitalized suspect cases aggregated by date of hospital admission.
+**deaths_confirmed_by_symptoms_date_mx.csv**|Confirmed deaths aggregated by date of symptoms onset.
+**deaths_confirmed_by_admission_date_mx.csv**|Confirmed deaths aggregated by date of hospital admission.
+**deaths_confirmed_by_death_date_mx.csv**|Confirmed deaths aggregated by date of death.
+**deaths_suspects_by_symptoms_date_mx.csv**|Suspect deaths aggregated by date of symptoms onset.
+**deaths_suspects_by_admission_date_mx.csv**|Suspect deaths aggregated by date of hospital admission.
+**deaths_suspects_by_death_date_mx.csv**|Suspect deaths aggregated by date of death.
+**deaths_negatives_by_symptoms_date_mx.csv**|Deaths that tested negative aggregated by date of symptoms onset.
+**deaths_negatives_by_admission_date_mx.csv**|Deaths that tested negative aggregated by date of hospital admission.
+**deaths_negatives_by_death_date_mx.csv**|Deaths that tested negative aggregated by date of death.
 
 
 
