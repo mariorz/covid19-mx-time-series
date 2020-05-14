@@ -19,7 +19,7 @@ filename | description
 It is worth noting that there is a considerable lag (up to 14 days) between when the patients are treated and when they are officially published as confirmed cases. These lags do seem to affect the shape of the resulting curves. Further analysis on this issue can be found [here](https://datos.nexos.com.mx/?p=1351).|
 
 ### Full
-The full set of time series files are located in the root [data/full directory](https://github.com/mariorz/covid19-mx-time-series/tree/master/data/full). 
+The full set of time series files are located in the [data/full directory](https://github.com/mariorz/covid19-mx-time-series/tree/master/data/full). 
 
 These time series are aggregated either by the state in which the patient was treated in the [data/full/by_hospital_state directory](https://github.com/mariorz/covid19-mx-time-series/tree/master/data/full/by_hospital_state), or by their state of residence in the [data/full/by_residency_state directory](https://github.com/mariorz/covid19-mx-time-series/tree/master/data/full/by_residency_state). 
 
