@@ -10,7 +10,7 @@ The basic set of files are located in the root [data directory](https://github.c
 filename | description
 --------------|--------------
 **covid19_deaths_mx.csv**|Confirmed deaths aggregated by date of official publication.
-**covid19_confirmed_mx.csv**|Confirmed cases by aggregated date of official publication.
+**covid19_confirmed_mx.csv**|Confirmed cases aggregated by date of official publication.
 **covid19_negatives_mx.csv**|Cases that tested negative aggregated by date of official publication.
 **covid19_suspects_mx.csv**|Suspect cases aggregated by date of official publication.
 
