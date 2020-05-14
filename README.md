@@ -23,7 +23,7 @@ The full set of time series files are located in the [data/full directory](https
 
 These time series are aggregated either by the state in which the patient was treated in the [data/full/by_hospital_state directory](https://github.com/mariorz/covid19-mx-time-series/tree/master/data/full/by_hospital_state), or by their state of residence in the [data/full/by_residency_state directory](https://github.com/mariorz/covid19-mx-time-series/tree/master/data/full/by_residency_state). 
 
-Each of these directories include the following time series CSV files:
+Each of these directories include the following time series CSV files according to case classification and the dates in which they are aggregated by. They are all updated using the latest published official db snapshot. This means that a case that started symptoms onset on date X, but had their case officially published as confirmed on date X+15, will be counted on date X for the files aggregated by date of symptoms onset. However, this update to date X will occur on day X+15.
 
 filename | description
 --------------|--------------
