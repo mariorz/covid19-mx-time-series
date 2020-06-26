@@ -5,6 +5,8 @@
   :plugins [[cider/cider-nrepl "0.24.0"]]
   :middleware [cider-nrepl.plugin/middleware]
   :dependencies [[org.clojure/clojure "1.10.1"]
+                 [org.clojure/tools.reader "1.3.2"]
+                 [org.clojure/data.json "1.0.0"]
                  [org.clojure/data.csv "0.1.4"]
                  [clj-http "3.10.0"]
                  [nrepl "0.7.0-beta1"]
