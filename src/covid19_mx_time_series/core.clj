@@ -125,6 +125,7 @@
 (defn write-series-csv
   [rows datefn statefn filename]
   (with-open [writer (io/writer filename)]
+    (println "writing for:" filename)
     (csv/write-csv
      writer
      (concat [(concat ["Estado"] @series-dates)]
@@ -180,18 +181,63 @@
                     (str dirpath "hospitalized_suspects_by_admission_date_mx.csv")))
 
 
-
-
+(defn write-full-state-series-csv-test
+  []
+  (let [all-args (apply concat (map (fn [[statefn dirpath]]
+                                      [[(dge/deaths @dge/bigtable) dge/symptoms-date statefn
+                                        (str dirpath "deaths_confirmed_by_symptoms_date_mx.csv")]
+                                       [(dge/deaths @dge/bigtable) dge/admission-date statefn
+                                        (str dirpath "deaths_confirmed_by_admission_date_mx.csv")]
+                                       [(dge/deaths @dge/bigtable) dge/death-date statefn
+                                        (str dirpath "deaths_confirmed_by_death_date_mx.csv")]
+                                       ;; death suspect by symptoms,admission,death
+                                       [(dge/deaths-suspects @dge/bigtable) dge/symptoms-date statefn
+                                        (str dirpath "deaths_suspects_by_symptoms_date_mx.csv")]
+                                       [(dge/deaths-suspects @dge/bigtable) dge/admission-date statefn
+                                        (str dirpath "deaths_suspects_by_admission_date_mx.csv")]
+                                       [(dge/deaths-suspects @dge/bigtable) dge/death-date statefn
+                                        (str dirpath "deaths_suspects_by_death_date_mx.csv")]
+                                       ;; death negative by symptoms,admission,death
+                                       [(dge/deaths-negatives @dge/bigtable) dge/symptoms-date statefn
+                                        (str dirpath "deaths_negatives_by_symptoms_date_mx.csv")]
+                                       [(dge/deaths-negatives @dge/bigtable) dge/admission-date statefn
+                                        (str dirpath "deaths_negatives_by_admission_date_mx.csv")]
+                                       [(dge/deaths-negatives @dge/bigtable) dge/death-date statefn
+                                        (str dirpath "deaths_negatives_by_death_date_mx.csv")]
+                                       ;; confirmed by symptoms date
+                                       [(dge/confirmed @dge/bigtable) dge/symptoms-date statefn
+                                        (str dirpath "confirmed_by_symptoms_date_mx.csv")]
+                                       ;; suspects by symptoms date
+                                       [(dge/suspects @dge/bigtable) dge/symptoms-date statefn
+                                        (str dirpath "suspects_by_symptoms_date_mx.csv")]
+                                       ;; negatives by symptoms date
+                                       [(dge/negatives @dge/bigtable) dge/symptoms-date statefn
+                                        (str dirpath "negatives_by_symptoms_date_mx.csv")]
+                                       ;; hospitalized confirmed by symptoms, admission
+                                       [(dge/hospitalized-confirmed @dge/bigtable) dge/symptoms-date statefn
+                                        (str dirpath "hospitalized_confirmed_by_symptoms_date_mx.csv")]
+                                       [(dge/hospitalized-confirmed @dge/bigtable) dge/admission-date statefn
+                                        (str dirpath "hospitalized_confirmed_by_admission_date_mx.csv")]
+                                       ;; hospitalized suspect by symptoms, admission
+                                       [(dge/hospitalized-suspects @dge/bigtable) dge/symptoms-date statefn
+                                        (str dirpath "hospitalized_suspects_by_symptoms_date_mx.csv")]
+                                       [(dge/hospitalized-suspects @dge/bigtable) dge/admission-date statefn
+                                        (str dirpath "hospitalized_suspects_by_admission_date_mx.csv")]
+                                       ;; hospitalized negatives by symptoms, admission
+                                       [(dge/hospitalized-negatives @dge/bigtable) dge/symptoms-date statefn
+                                        (str dirpath "hospitalized_suspects_by_symptoms_date_mx.csv")]
+                                       [(dge/hospitalized-negatives @dge/bigtable) dge/admission-date statefn
+                                        (str dirpath "hospitalized_suspects_by_admission_date_mx.csv")]])
+                                    [[dge/state "data/full/by_hospital_state/"]
+                                     [dge/residency-state "data/full/by_residency_state/"]]))
+        _ (println "all args:" (count all-args))]
+    (doall (pmap #(apply write-series-csv %) all-args))))
 
 
 
 (defn -main
   [& args]
   (run-write-with-check)
-  (println "Generating series by hospital states...")
-  (time
-   (write-full-state-series-csv dge/state "data/full/by_hospital_state/"))
-  (println "Generating series by residency states...")
-  (time
-   (write-full-state-series-csv dge/residency-state "data/full/by_residency_state/"))
-  (shutdown-agents))
+  (println "Generating series for states...")
+  (time (write-full-state-series-csv-test))
+  #_(shutdown-agents))
