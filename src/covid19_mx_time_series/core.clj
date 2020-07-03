@@ -131,6 +131,10 @@
      (concat [(concat ["Estado"] @series-dates)]
              (make-series rows datefn statefn)))))
 
+(defn pmap-cb [callback f & colls]
+        (let [res (doall (apply pmap f colls))]
+          (callback)
+          res))
 
 (defn write-full-state-series-csv
   []
@@ -182,7 +186,7 @@
                                     [[dge/state "data/full/by_hospital_state/"]
                                      [dge/residency-state "data/full/by_residency_state/"]]))
         _ (println "all args:" (count all-args))]
-    (doall (pmap #(apply write-series-csv %) all-args))))
+    (pmap-cb #(send-kbmsg "finished") #(apply write-series-csv %) all-args)))
 
 
 
