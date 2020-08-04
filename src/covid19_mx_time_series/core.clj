@@ -219,7 +219,7 @@
 (defn full-flow
   []
   (let [_ (time (write-full-state-series-csv))
-        my-repo (jgit/load-repo "/home/ubuntu/covid19-mx-time-series")]
+        my-repo (jgit/load-repo "/home/mariorz/covid19-mx-time-series")]
     (jgit/git-add my-repo "data/")
     (jgit/git-commit my-repo (str (date-today) "full"))
     (jgit/git-push my-repo)))
@@ -228,7 +228,7 @@
 (defn basic-flow
   []
   (let [_ (run-write-with-check)
-        my-repo (jgit/load-repo "/home/ubuntu/covid19-mx-time-series")]
+        my-repo (jgit/load-repo "/home/mariorz/covid19-mx-time-series")]
     (jgit/git-add my-repo "data/")
     (jgit/git-commit my-repo (str (date-today)" basic"))
     (jgit/git-push my-repo)))
