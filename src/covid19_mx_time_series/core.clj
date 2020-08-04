@@ -5,7 +5,11 @@
             [clj-time.format :as f]
             [covid19-mx-time-series.sinave :as sinave]
             [covid19-mx-time-series.carranco :as carranco]
-            [covid19-mx-time-series.dge :as dge]))
+            [covid19-mx-time-series.dge :as dge]
+	    [clj-jgit.porcelain :as jgit]
+            [clj-time.format :as f]
+            [clj-time.local :as l])
+  (:import [java.util Locale]))
 
 
 ;; currently missing data:
@@ -136,6 +140,25 @@
           (callback)
           res))
 
+
+
+#_(defn date-today
+  []
+  (f/unparse (f/formatter "dd-MM-yyyy")
+             (l/local-now)))
+;; get repo
+;; add data
+;; commit with date
+;; push origin master
+;; keybase msg
+#_(defn git-flow
+  []
+  (let [my-repo (jgit/load-repo "/home/ubuntu/covid19-mx-time-series")]
+    (jgit/git-add my-repo "data/")
+    (jgit/git-commit my-repo (date-today))
+    (jgit/git-push my-repo)))
+
+
 (defn write-full-state-series-csv
   []
   (let [all-args (apply concat (map (fn [[statefn dirpath]]
@@ -187,6 +210,30 @@
                                      [dge/residency-state "data/full/by_residency_state/"]]))
         _ (println "all args:" (count all-args))]
     (pmap-cb #(send-kbmsg "finished") #(apply write-series-csv %) all-args)))
+
+
+(defn date-today
+  []
+  (f/unparse (f/formatter "dd-MM-yyyy")
+             (l/local-now)))
+(defn full-flow
+  []
+  (let [_ (time (write-full-state-series-csv))
+        my-repo (jgit/load-repo "/home/ubuntu/covid19-mx-time-series")]
+    (jgit/git-add my-repo "data/")
+    (jgit/git-commit my-repo (str (date-today) "full"))
+    (jgit/git-push my-repo)))
+
+
+(defn basic-flow
+  []
+  (let [_ (run-write-with-check)
+        my-repo (jgit/load-repo "/home/ubuntu/covid19-mx-time-series")]
+    (jgit/git-add my-repo "data/")
+    (jgit/git-commit my-repo (str (date-today)" basic"))
+    (jgit/git-push my-repo)))
+
+
 
 
 

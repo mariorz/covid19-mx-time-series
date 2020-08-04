@@ -10,7 +10,8 @@
                  [org.clojure/data.csv "0.1.4"]
                  [clj-http "3.10.0"]
                  [nrepl "0.7.0-beta1"]
-                 [clj-time "0.15.2"]]
+                 [clj-time "0.15.2"]
+		 [clj-jgit "1.0.0-beta3"]]
   :main ^:skip-aot covid19-mx-time-series.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

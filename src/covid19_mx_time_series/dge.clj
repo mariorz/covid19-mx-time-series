@@ -21,9 +21,12 @@
 (defn fetch-csv
   []
   (let [filepath (str "resources/dge." (day-mx) ".csv")
-        dge-url "http://187.191.75.115/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip"
+        dge-url "http://epidemiologia.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip"
+        ;;dge-url "http://187.191.75.115/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip"
         stream (->
-                (client/get dge-url {:as :byte-array})
+                (client/get dge-url {:socket-timeout 10000
+                                     :connection-timeout 1000
+                                     :as :byte-array})
                 (:body)
                 (io/input-stream)
                 (java.util.zip.ZipInputStream.))]
