@@ -189,7 +189,7 @@
                                        [(dge/suspects @dge/bigtable) dge/symptoms-date statefn
                                         (str dirpath "suspects_by_symptoms_date_mx.csv")]
                                        ;; negatives by symptoms date
-                                       [(dge/negatives @dge/bigtable) dge/symptoms-date statefn
+                                       #_[(dge/negatives @dge/bigtable) dge/symptoms-date statefn
                                         (str dirpath "negatives_by_symptoms_date_mx.csv")]
                                        ;; hospitalized confirmed by symptoms, admission
                                        [(dge/hospitalized-confirmed @dge/bigtable) dge/symptoms-date statefn
