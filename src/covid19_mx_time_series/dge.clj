@@ -35,15 +35,28 @@
     (clojure.java.io/copy stream (clojure.java.io/file filepath))
     filepath))
 
+(defn lazy-read-csv
+  [csv-file]
+  (let [in-file (io/reader csv-file)
+        csv-seq (csv/read-csv in-file)
+        lazy (fn lazy [wrapped]
+               (lazy-seq
+                (if-let [s (seq wrapped)]
+                  (cons (first s) (lazy (rest s)))
+                  (.close in-file))))]
+    (lazy csv-seq)))
+
 
 (def bigtable
   (delay
    (let [_ (println "fetching csv zipfile...")
          filepath (fetch-csv)
+         ;;filepath  (str "resources/dge.06-10-2020.csv")
          _ (println "reading csv...")
-         r (csv/read-csv
-            (slurp filepath))]
-     (assert (= (count (first r)) 35)
+         ;;r (csv/read-csv
+         ;;   (slurp filepath))
+         r (lazy-read-csv filepath)]
+     (assert (= (count (first r)) 36)
              "Column count in DGE file has changed!")
      r)))
 
@@ -108,7 +121,7 @@
 
 (defn resultado
   [r]
-  (nth r 30))
+  (nth r 31))
 
 
 (defn entidad-res
@@ -138,6 +151,16 @@
 (defn icu
   [r]
   (si-no (nth r 34)))
+
+
+(defn otro-caso
+  [r]
+  (si-no (nth r 29)))
+
+
+(defn toma-muestra
+  [r]
+  (identity (nth r 30)))
 
 
 (defn state
@@ -230,6 +253,18 @@
           (rest csvdata)))
 
 
+
+(defn deaths-with-contacts
+  [csvdata]
+  (filter #(and (or (= (resultado %) "1")
+                    (and (= (toma-muestra %) "2")
+                         #_(or (= (resultado %) "2")
+                             (= (resultado %) "3")
+                             (= (resultado %) "4")
+                             (= (resultado %) "97"))
+                         (= (otro-caso %) "T")))
+                (not= (death-date %) "9999-99-99"))
+          (rest csvdata)))
 
 (defn death-counts
   [csvdata]

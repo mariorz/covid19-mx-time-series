@@ -229,9 +229,9 @@
   []
   (let [_ (run-write-with-check)
         my-repo (jgit/load-repo "/home/mariorz/covid19-mx-time-series")]
-    (jgit/git-add my-repo "data/")
-    (jgit/git-commit my-repo (str (date-today)" basic"))
-    (jgit/git-push my-repo)))
+    #_(jgit/git-add my-repo "data/")
+    #_(jgit/git-commit my-repo (str (date-today)" basic"))
+    #_(jgit/git-push my-repo)))
 
 
 
@@ -239,7 +239,8 @@
 
 (defn -main
   [& args]
-  (run-write-with-check)
-  (println "Generating series for states...")
-  (time (write-full-state-series-csv))
+  (basic-flow)
+  #_(run-write-with-check)
+  #_(println "Generating series for states...")
+  #_(time (write-full-state-series-csv))
   #_(shutdown-agents))
