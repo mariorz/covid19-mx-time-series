@@ -51,12 +51,12 @@
   (delay
    (let [_ (println "fetching csv zipfile...")
          filepath (fetch-csv)
-         ;;filepath  (str "resources/dge.06-10-2020.csv")
+         ;;filepath  (str "resources/dge.07-10-2020.csv")
          _ (println "reading csv...")
          ;;r (csv/read-csv
          ;;   (slurp filepath))
          r (lazy-read-csv filepath)]
-     (assert (= (count (first r)) 36)
+     (assert (= (count (first r)) 38)
              "Column count in DGE file has changed!")
      r)))
 
@@ -121,7 +121,11 @@
 
 (defn resultado
   [r]
-  (nth r 31))
+  (nth r 33))
+
+(defn resultado-lab
+  [r]
+  (nth r 32))
 
 
 (defn entidad-res
@@ -150,17 +154,17 @@
 
 (defn icu
   [r]
-  (si-no (nth r 34)))
+  (si-no (nth r 37)))
 
 
 (defn otro-caso
   [r]
-  (si-no (nth r 29)))
+  (si-no (nth r 30)))
 
 
 (defn toma-muestra
   [r]
-  (identity (nth r 30)))
+  (identity (nth r 31)))
 
 
 (defn state
@@ -182,22 +186,24 @@
 
 (defn deaths
   [csvdata]
-  (filter #(and (= (resultado %) "1")
+  (filter #(and (contains? #{"1" "2" "3"} (resultado %))
                 (not= (death-date %) "9999-99-99"))
           (rest csvdata)))
 
 
+
+
 (defn deaths-including-suspects
   [csvdata]
-  (filter #(and (or (= (resultado %) "1")
-                    (= (resultado %) "3"))
+  (filter #(and (or (contains? #{"1" "2" "3"} (resultado %))
+                    (= (resultado %) "6"))
                 (not= (death-date %) "9999-99-99"))
           (rest csvdata)))
 
 
 (defn deaths-suspects
   [csvdata]
-  (filter #(and (= (resultado %) "3")
+  (filter #(and (contains? #{"6"} (resultado %))
                 (not= (death-date %) "9999-99-99"))
           (rest csvdata)))
 
@@ -205,7 +211,7 @@
 
 (defn deaths-negatives
   [csvdata]
-  (filter #(and (= (resultado %) "2")
+  (filter #(and (= (resultado %) "7")
                 (not= (death-date %) "9999-99-99"))
           (rest csvdata)))
 
@@ -214,57 +220,43 @@
 
 (defn confirmed
   [csvdata]
-  (filter #(= (resultado %) "1") (rest csvdata)))
+  (filter #(contains? #{"1" "2" "3"} (resultado %)) (rest csvdata)))
 
 
 (defn suspects
   [csvdata]
-  (filter #(= (resultado %) "3") (rest csvdata)))
+  (filter #(contains? #{"6" "5" "4"} (resultado %)) (rest csvdata)))
 
 
-(defn non-negative
-  [csvdata]
-  (filter #(not= (resultado %) "2") (rest csvdata)))
 
 
 (defn negatives
   [csvdata]
-  (filter #(= (resultado %) "2") (rest csvdata)))
+  (filter #(= (resultado %) "7") (rest csvdata)))
 
 
 (defn hospitalized-confirmed
   [csvdata]
-  (filter #(and (= (resultado %) "1")
+  (filter #(and (contains? #{"1" "2" "3"} (resultado %))
                 (not= (admission-date %) "9999-99-99"))
           (rest csvdata)))
 
 
 (defn hospitalized-suspects
   [csvdata]
-  (filter #(and (= (resultado %) "3")
+  (filter #(and (= (resultado %) "6")
                 (not= (admission-date %) "9999-99-99"))
           (rest csvdata)))
 
 
 (defn hospitalized-negatives
   [csvdata]
-  (filter #(and (= (resultado %) "2")
+  (filter #(and (= (resultado %) "7")
                 (not= (admission-date %) "9999-99-99"))
           (rest csvdata)))
 
 
 
-(defn deaths-with-contacts
-  [csvdata]
-  (filter #(and (or (= (resultado %) "1")
-                    (and (= (toma-muestra %) "2")
-                         #_(or (= (resultado %) "2")
-                             (= (resultado %) "3")
-                             (= (resultado %) "4")
-                             (= (resultado %) "97"))
-                         (= (otro-caso %) "T")))
-                (not= (death-date %) "9999-99-99"))
-          (rest csvdata)))
 
 (defn death-counts
   [csvdata]
