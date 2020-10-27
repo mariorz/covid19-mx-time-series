@@ -3,10 +3,11 @@
             [clojure.java.io :as io]
             [clojure.data.csv :as csv]
             [clj-time.format :as f]
+            [clojure.core.reducers :as r]
             [covid19-mx-time-series.sinave :as sinave]
             [covid19-mx-time-series.carranco :as carranco]
             [covid19-mx-time-series.dge :as dge]
-	    [clj-jgit.porcelain :as jgit]
+            [clj-jgit.porcelain :as jgit]
             [clj-time.format :as f]
             [clj-time.local :as l])
   (:import [java.util Locale]))
@@ -100,7 +101,7 @@
   [datefn statefn]
   (fn [accum r]
     (update-in accum [(statefn r)]
-               (fn [old arg] (doall (concat old [arg])))
+               (fn [old arg] (conj old arg))
                {(ymd->dmy (datefn r)) 1})))
 
 
@@ -125,6 +126,24 @@
                       (reduce series-adder [] (rest r)))))
        (sort-by first)))
 
+(defn fmake-series
+  [selected-rows datefn statefn]
+  (->> selected-rows
+       (r/reduce (date-row-reducer datefn statefn) {})
+       (r/map (fn [r]
+              {(first r) (apply merge-with + (second r))}))
+       (r/reduce merge {})
+       (r/map (fn [[k v]]
+              (concat [k] (mapv #(get v % 0) @series-dates))))
+       (r/map (fn [r]
+              (concat [(first r)]
+                      (reduce series-adder [] (rest r)))))
+       (r/reduce conj [])
+       (r/fold
+        (r/monoid into vector)
+        (fn [ret v] (conj ret v)))
+       (sort-by first)))
+
 
 (defn write-series-csv
   [rows datefn statefn filename]
@@ -142,10 +161,6 @@
 
 
 
-#_(defn date-today
-  []
-  (f/unparse (f/formatter "dd-MM-yyyy")
-             (l/local-now)))
 ;; get repo
 ;; add data
 ;; commit with date
@@ -214,23 +229,23 @@
 
 (defn date-today
   []
-  (f/unparse (f/formatter "dd-MM-yyyy")
-             (l/local-now)))
+  (dge/day-mx))
+
 (defn full-flow
   []
   (let [_ (time (write-full-state-series-csv))
         my-repo (jgit/load-repo "/home/mariorz/covid19-mx-time-series")]
     (jgit/git-add my-repo "data/")
-    (jgit/git-commit my-repo (str (date-today) "full"))
-    (jgit/git-push my-repo)))
+    (jgit/git-commit my-repo (str (dge/day-mx) " full"))
+    #_(jgit/git-push my-repo)))
 
 
 (defn basic-flow
   []
   (let [_ (run-write-with-check)
         my-repo (jgit/load-repo "/home/mariorz/covid19-mx-time-series")]
-    #_(jgit/git-add my-repo "data/")
-    #_(jgit/git-commit my-repo (str (date-today)" basic"))
+    (jgit/git-add my-repo "data/")
+    (jgit/git-commit my-repo (str (dge/day-mx) " basic"))
     #_(jgit/git-push my-repo)))
 
 
@@ -239,7 +254,7 @@
 
 (defn -main
   [& args]
-  (basic-flow)
+  #_(basic-flow)
   #_(run-write-with-check)
   #_(println "Generating series for states...")
   #_(time (write-full-state-series-csv))

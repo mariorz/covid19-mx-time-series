@@ -7,6 +7,8 @@
             [clj-time.core :as t]
             [clj-time.format :as f]
             [clj-time.local :as l]
+            [iota :as iota]
+            [clojure.core.reducers :as r]
             [covid19-mx-time-series.sinave :as sinave]))
 
 
@@ -17,13 +19,10 @@
    (t/minus (l/local-now) (t/hours 6))))
 
 
-
 (defn fetch-csv
   []
   (let [filepath (str "resources/dge." (day-mx) ".csv")
         dge-url "http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip"
-        ;;dge-url "http://epidemiologia.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip"
-        ;;dge-url "http://187.191.75.115/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip"
         stream (->
                 (client/get dge-url {:socket-timeout 10000
                                      :connection-timeout 1000
@@ -47,18 +46,44 @@
     (lazy csv-seq)))
 
 
+#_(time (count (lazy-read-csv "resources/dge.14-10-2020.csv")))
+
 (def bigtable
   (delay
-   (let [_ (println "fetching csv zipfile...")
-         filepath (fetch-csv)
-         ;;filepath  (str "resources/dge.07-10-2020.csv")
-         _ (println "reading csv...")
-         ;;r (csv/read-csv
-         ;;   (slurp filepath))
-         r (lazy-read-csv filepath)]
-     (assert (= (count (first r)) 38)
-             "Column count in DGE file has changed!")
-     r)))
+    (let [_ (println "fetching csv zipfile...")
+          filepath (fetch-csv)
+          ;;filepath  (str "resources/dge.26-10-2020.csv")
+          _ (println "reading csv...")
+          r (lazy-read-csv filepath)]
+      (assert (= (count (first r)) 38)
+              "Column count in DGE file has changed!")
+      filepath)))
+
+
+
+(def in-memory-csv
+  (delay (->> (iota/seq @bigtable)
+              rest
+              (r/map (comp first csv/read-csv)))))
+
+(defn folded-csv
+  [filename ffn]
+  (->> @in-memory-csv
+       (r/filter ffn)
+       (r/fold
+        (r/monoid into vector)
+        (fn [ret v] (conj ret v)))))
+
+
+(defn lazy-csv
+  [filename ffn]
+  (->> (lazy-read-csv filename)
+       (filter ffn)))
+
+
+(def parsed-csv lazy-csv)
+
+
 
 
 (def state-codes
@@ -184,76 +209,89 @@
   (f/parse (f/formatter "yyyy-M-d") s))
 
 
+
 (defn deaths
-  [csvdata]
-  (filter #(and (contains? #{"1" "2" "3"} (resultado %))
-                (not= (death-date %) "9999-99-99"))
-          (rest csvdata)))
+  [filename]
+  (parsed-csv
+   filename
+   #(and (contains? #{"1" "2" "3"} (resultado %))
+         (not= (death-date %) "9999-99-99"))))
 
 
 
 
 (defn deaths-including-suspects
-  [csvdata]
-  (filter #(and (or (contains? #{"1" "2" "3"} (resultado %))
-                    (= (resultado %) "6"))
-                (not= (death-date %) "9999-99-99"))
-          (rest csvdata)))
+  [filename]
+  (parsed-csv
+   filename
+   #(and (or (contains? #{"1" "2" "3"} (resultado %))
+             (= (resultado %) "6"))
+         (not= (death-date %) "9999-99-99"))))
+
 
 
 (defn deaths-suspects
-  [csvdata]
-  (filter #(and (contains? #{"6"} (resultado %))
-                (not= (death-date %) "9999-99-99"))
-          (rest csvdata)))
+  [filename]
+  (parsed-csv
+   filename
+   #(and (contains? #{"6"} (resultado %))
+         (not= (death-date %) "9999-99-99"))))
 
 
 
 (defn deaths-negatives
-  [csvdata]
-  (filter #(and (= (resultado %) "7")
-                (not= (death-date %) "9999-99-99"))
-          (rest csvdata)))
-
-
+  [filename]
+  (parsed-csv
+   filename
+   #(and (= (resultado %) "7")
+         (not= (death-date %) "9999-99-99"))))
 
 
 (defn confirmed
-  [csvdata]
-  (filter #(contains? #{"1" "2" "3"} (resultado %)) (rest csvdata)))
+  [filename]
+  (parsed-csv
+   filename
+   #(contains? #{"1" "2" "3"} (resultado %))))
+
 
 
 (defn suspects
-  [csvdata]
-  (filter #(contains? #{"6" "5" "4"} (resultado %)) (rest csvdata)))
-
+  [filename]
+  (parsed-csv
+   filename
+   #(contains? #{"6" "5" "4"} (resultado %))))
 
 
 
 (defn negatives
-  [csvdata]
-  (filter #(= (resultado %) "7") (rest csvdata)))
+  [filename]
+  (parsed-csv
+   filename
+   #(= (resultado %) "7")))
 
 
 (defn hospitalized-confirmed
-  [csvdata]
-  (filter #(and (contains? #{"1" "2" "3"} (resultado %))
-                (not= (admission-date %) "9999-99-99"))
-          (rest csvdata)))
+  [filename]
+  (parsed-csv
+   filename
+   #(and (contains? #{"1" "2" "3"} (resultado %))
+         (not= (admission-date %) "9999-99-99"))))
 
 
 (defn hospitalized-suspects
-  [csvdata]
-  (filter #(and (= (resultado %) "6")
-                (not= (admission-date %) "9999-99-99"))
-          (rest csvdata)))
+  [filename]
+  (parsed-csv
+   filename
+   #(and (= (resultado %) "6")
+         (not= (admission-date %) "9999-99-99"))))
 
 
 (defn hospitalized-negatives
-  [csvdata]
-  (filter #(and (= (resultado %) "7")
-                (not= (admission-date %) "9999-99-99"))
-          (rest csvdata)))
+  [filename]
+  (parsed-csv
+   filename
+   #(and (= (resultado %) "7")
+         (not= (admission-date %) "9999-99-99"))))
 
 
 
@@ -261,6 +299,7 @@
 (defn death-counts
   [csvdata]
   (frequencies (map state (deaths csvdata))))
+
 
 
 (defn confirmed-counts
