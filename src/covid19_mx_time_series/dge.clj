@@ -22,7 +22,9 @@
 (defn fetch-csv
   []
   (let [filepath (str "resources/dge." (day-mx) ".csv")
-        dge-url "http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip"
+        dge-url (str "http://datosabiertos.salud.gob.mx"
+                     "/gobmx/salud/datos_abiertos"
+                     "/datos_abiertos_covid19.zip")
         stream (->
                 (client/get dge-url {:socket-timeout 10000
                                      :connection-timeout 1000
@@ -33,6 +35,7 @@
     (.getNextEntry stream)
     (clojure.java.io/copy stream (clojure.java.io/file filepath))
     filepath))
+
 
 (defn lazy-read-csv
   [csv-file]
@@ -48,11 +51,12 @@
 
 #_(time (count (lazy-read-csv "resources/dge.14-10-2020.csv")))
 
+
 (def bigtable
   (delay
     (let [_ (println "fetching csv zipfile...")
           filepath (fetch-csv)
-          ;;filepath  (str "resources/dge.26-10-2020.csv")
+          ;;filepath  "resources/dge.27-10-2020.csv"
           _ (println "reading csv...")
           r (lazy-read-csv filepath)]
       (assert (= (count (first r)) 38)
@@ -60,19 +64,21 @@
       filepath)))
 
 
-
 (def in-memory-csv
-  (delay (->> (iota/seq @bigtable)
-              rest
-              (r/map (comp first csv/read-csv)))))
+  (delay
+    (rest (iota/seq @bigtable))))
+
 
 (defn folded-csv
   [filename ffn]
-  (->> @in-memory-csv
-       (r/filter ffn)
-       (r/fold
-        (r/monoid into vector)
-        (fn [ret v] (conj ret v)))))
+  (println "folding for:" ffn)
+  (time
+   (->> @in-memory-csv
+        (r/map (comp first csv/read-csv))
+        (r/filter ffn)
+        (r/fold
+         (r/monoid into vector)
+         (fn [ret v] (conj ret v))))))
 
 
 (defn lazy-csv
@@ -81,7 +87,7 @@
        (filter ffn)))
 
 
-(def parsed-csv lazy-csv)
+(def parsed-csv folded-csv)
 
 
 
@@ -119,6 +125,7 @@
    "Veracruz"
    "Yucatán"
    "Zacatecas"])
+
 
 (defn unique-id
   [r]
@@ -352,10 +359,4 @@
 #_(clojure.data/diff (confirmed-counts bigtable) (sinave/confirmed-counts s))
 #_(clojure.data/diff (suspect-counts bigtable) (sinave/suspect-counts s))
 #_(clojure.data/diff (negative-counts bigtable) (sinave/negative-counts s)) ;; FAIL
-
-
-;; errores
-;; 0) numero total de casos negativos no corresponde con lo mostrado en el mapa
-;; 1) no tenemos fecha de resultado
-;; 2) fecha de actualización acutalizan todos en lugar de solo lso que tienen cambios
 

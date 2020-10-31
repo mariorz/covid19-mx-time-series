@@ -100,15 +100,17 @@
 (defn date-row-reducer
   [datefn statefn]
   (fn [accum r]
-    (update-in accum [(statefn r)]
-               (fn [old arg] (conj old arg))
-               {(ymd->dmy (datefn r)) 1})))
+    (update-in
+     accum
+     [(statefn r)]
+     (fn [old arg] (conj old arg))
+     {(ymd->dmy (datefn r)) 1})))
 
 
 (defn series-adder
   [accum v]
   (if (last accum)
-    (concat accum [(+ (last accum) v)])
+    (conj accum (+ (last accum) v))
     [v]))
 
 
@@ -126,6 +128,8 @@
                       (reduce series-adder [] (rest r)))))
        (sort-by first)))
 
+
+;;does not fold
 (defn fmake-series
   [selected-rows datefn statefn]
   (->> selected-rows
@@ -145,6 +149,45 @@
        (sort-by first)))
 
 
+(defn fmake-series2
+  [ffn datefn statefn]
+  (->> #_selected-rows
+       @dge/in-memory-csv
+       (r/filter ffn)
+       ;;(r/reduce (date-row-reducer datefn statefn) {})
+       (r/map (fn [r] {(statefn r) {(ymd->dmy (datefn r)) 1}}))
+        (r/fold
+        (r/monoid into vector)
+        (fn [ret v] (conj ret v)))
+       #_(sort-by first)))
+
+
+
+#_(time
+   (def x
+    (make-series
+     (dge/hospitalized-confirmed @dge/bigtable)
+     dge/symptoms-date
+     dge/state)))
+
+
+#_(time
+   (count
+    (fmake-series
+     (dge/deaths @dge/bigtable)
+     dge/death-date
+     dge/state)))
+
+#_(time
+     (count
+      (fmake-series2
+       #(and (contains? #{"1" "2" "3"} (dge/resultado %))
+             (not= (dge/death-date %) "9999-99-99"))
+       dge/death-date
+       dge/state)))
+
+
+
 (defn write-series-csv
   [rows datefn statefn filename]
   (with-open [writer (io/writer filename)]
@@ -155,7 +198,7 @@
              (make-series rows datefn statefn)))))
 
 (defn pmap-cb [callback f & colls]
-        (let [res (doall (apply pmap f colls))]
+        (let [res (doall (apply map f colls))]
           (callback)
           res))
 
@@ -174,57 +217,79 @@
     (jgit/git-push my-repo)))
 
 
+(defn write-full-state-series-csv-inner
+  [statefn dirpath]
+  (write-series-csv
+   (dge/deaths @dge/bigtable) dge/symptoms-date statefn
+   (str dirpath "deaths_confirmed_by_symptoms_date_mx.csv"))
+  (write-series-csv
+   (dge/deaths @dge/bigtable) dge/admission-date statefn
+   (str dirpath "deaths_confirmed_by_admission_date_mx.csv"))
+  (write-series-csv
+   (dge/deaths @dge/bigtable) dge/death-date statefn
+   (str dirpath "deaths_confirmed_by_death_date_mx.csv"))
+  ;; death suspect by symptoms,admission,death
+  (write-series-csv
+   (dge/deaths-suspects @dge/bigtable) dge/symptoms-date statefn
+   (str dirpath "deaths_suspects_by_symptoms_date_mx.csv"))
+  (write-series-csv
+   (dge/deaths-suspects @dge/bigtable) dge/admission-date statefn
+   (str dirpath "deaths_suspects_by_admission_date_mx.csv"))
+  (write-series-csv
+   (dge/deaths-suspects @dge/bigtable) dge/death-date statefn
+   (str dirpath "deaths_suspects_by_death_date_mx.csv"))
+  ;; death negative by symptoms,admission,death
+  (write-series-csv
+   (dge/deaths-negatives @dge/bigtable) dge/symptoms-date statefn
+   (str dirpath "deaths_negatives_by_symptoms_date_mx.csv"))
+  (write-series-csv
+   (dge/deaths-negatives @dge/bigtable) dge/admission-date statefn
+   (str dirpath "deaths_negatives_by_admission_date_mx.csv"))
+  (write-series-csv
+   (dge/deaths-negatives @dge/bigtable) dge/death-date statefn
+   (str dirpath "deaths_negatives_by_death_date_mx.csv"))
+  ;; confirmed by symptoms date
+  (write-series-csv
+   (dge/confirmed @dge/bigtable) dge/symptoms-date statefn
+   (str dirpath "confirmed_by_symptoms_date_mx.csv"))
+  ;; suspects by symptoms date
+  (write-series-csv
+   (dge/suspects @dge/bigtable) dge/symptoms-date statefn
+   (str dirpath "suspects_by_symptoms_date_mx.csv"))
+  ;; negatives by symptoms date
+  (write-series-csv
+   (dge/negatives @dge/bigtable) dge/symptoms-date statefn
+   (str dirpath "negatives_by_symptoms_date_mx.csv"))
+  ;; hospitalized confirmed by symptoms, admission
+  (write-series-csv
+   (dge/hospitalized-confirmed @dge/bigtable) dge/symptoms-date statefn
+   (str dirpath "hospitalized_confirmed_by_symptoms_date_mx.csv"))
+  (write-series-csv
+   (dge/hospitalized-confirmed @dge/bigtable) dge/admission-date statefn
+   (str dirpath "hospitalized_confirmed_by_admission_date_mx.csv"))
+  ;; hospitalized suspect by symptoms, admission
+  (write-series-csv
+   (dge/hospitalized-suspects @dge/bigtable) dge/symptoms-date statefn
+   (str dirpath "hospitalized_suspects_by_symptoms_date_mx.csv"))
+  (write-series-csv
+   (dge/hospitalized-suspects @dge/bigtable) dge/admission-date statefn
+   (str dirpath "hospitalized_suspects_by_admission_date_mx.csv"))
+  ;; hospitalized negatives by symptoms, admission
+  (write-series-csv
+   (dge/hospitalized-negatives @dge/bigtable) dge/symptoms-date statefn
+   (str dirpath "hospitalized_suspects_by_symptoms_date_mx.csv"))
+  (write-series-csv
+   (dge/hospitalized-negatives @dge/bigtable) dge/admission-date statefn
+   (str dirpath "hospitalized_suspects_by_admission_date_mx.csv")))
+
+
 (defn write-full-state-series-csv
   []
-  (let [all-args (apply concat (map (fn [[statefn dirpath]]
-                                      [[(dge/deaths @dge/bigtable) dge/symptoms-date statefn
-                                        (str dirpath "deaths_confirmed_by_symptoms_date_mx.csv")]
-                                       [(dge/deaths @dge/bigtable) dge/admission-date statefn
-                                        (str dirpath "deaths_confirmed_by_admission_date_mx.csv")]
-                                       [(dge/deaths @dge/bigtable) dge/death-date statefn
-                                        (str dirpath "deaths_confirmed_by_death_date_mx.csv")]
-                                       ;; death suspect by symptoms,admission,death
-                                       [(dge/deaths-suspects @dge/bigtable) dge/symptoms-date statefn
-                                        (str dirpath "deaths_suspects_by_symptoms_date_mx.csv")]
-                                       [(dge/deaths-suspects @dge/bigtable) dge/admission-date statefn
-                                        (str dirpath "deaths_suspects_by_admission_date_mx.csv")]
-                                       [(dge/deaths-suspects @dge/bigtable) dge/death-date statefn
-                                        (str dirpath "deaths_suspects_by_death_date_mx.csv")]
-                                       ;; death negative by symptoms,admission,death
-                                       [(dge/deaths-negatives @dge/bigtable) dge/symptoms-date statefn
-                                        (str dirpath "deaths_negatives_by_symptoms_date_mx.csv")]
-                                       [(dge/deaths-negatives @dge/bigtable) dge/admission-date statefn
-                                        (str dirpath "deaths_negatives_by_admission_date_mx.csv")]
-                                       [(dge/deaths-negatives @dge/bigtable) dge/death-date statefn
-                                        (str dirpath "deaths_negatives_by_death_date_mx.csv")]
-                                       ;; confirmed by symptoms date
-                                       [(dge/confirmed @dge/bigtable) dge/symptoms-date statefn
-                                        (str dirpath "confirmed_by_symptoms_date_mx.csv")]
-                                       ;; suspects by symptoms date
-                                       [(dge/suspects @dge/bigtable) dge/symptoms-date statefn
-                                        (str dirpath "suspects_by_symptoms_date_mx.csv")]
-                                       ;; negatives by symptoms date
-                                       #_[(dge/negatives @dge/bigtable) dge/symptoms-date statefn
-                                        (str dirpath "negatives_by_symptoms_date_mx.csv")]
-                                       ;; hospitalized confirmed by symptoms, admission
-                                       [(dge/hospitalized-confirmed @dge/bigtable) dge/symptoms-date statefn
-                                        (str dirpath "hospitalized_confirmed_by_symptoms_date_mx.csv")]
-                                       [(dge/hospitalized-confirmed @dge/bigtable) dge/admission-date statefn
-                                        (str dirpath "hospitalized_confirmed_by_admission_date_mx.csv")]
-                                       ;; hospitalized suspect by symptoms, admission
-                                       [(dge/hospitalized-suspects @dge/bigtable) dge/symptoms-date statefn
-                                        (str dirpath "hospitalized_suspects_by_symptoms_date_mx.csv")]
-                                       [(dge/hospitalized-suspects @dge/bigtable) dge/admission-date statefn
-                                        (str dirpath "hospitalized_suspects_by_admission_date_mx.csv")]
-                                       ;; hospitalized negatives by symptoms, admission
-                                       [(dge/hospitalized-negatives @dge/bigtable) dge/symptoms-date statefn
-                                        (str dirpath "hospitalized_suspects_by_symptoms_date_mx.csv")]
-                                       [(dge/hospitalized-negatives @dge/bigtable) dge/admission-date statefn
-                                        (str dirpath "hospitalized_suspects_by_admission_date_mx.csv")]])
-                                    [[dge/state "data/full/by_hospital_state/"]
-                                     [dge/residency-state "data/full/by_residency_state/"]]))
-        _ (println "all args:" (count all-args))]
-    (pmap-cb #(send-kbmsg "finished") #(apply write-series-csv %) all-args)))
+  (write-full-state-series-csv-inner dge/state "data/full/by_hospital_state/")
+  (write-full-state-series-csv-inner dge/residency-state "data/full/by_residency_state/"))
+
+
+
 
 
 (defn date-today
@@ -237,7 +302,7 @@
         my-repo (jgit/load-repo "/home/mariorz/covid19-mx-time-series")]
     (jgit/git-add my-repo "data/")
     (jgit/git-commit my-repo (str (dge/day-mx) " full"))
-    #_(jgit/git-push my-repo)))
+    (jgit/git-push my-repo)))
 
 
 (defn basic-flow
@@ -246,7 +311,7 @@
         my-repo (jgit/load-repo "/home/mariorz/covid19-mx-time-series")]
     (jgit/git-add my-repo "data/")
     (jgit/git-commit my-repo (str (dge/day-mx) " basic"))
-    #_(jgit/git-push my-repo)))
+    (jgit/git-push my-repo)))
 
 
 
