@@ -56,10 +56,10 @@
   (delay
     (let [_ (println "fetching csv zipfile...")
           filepath (fetch-csv)
-          ;;filepath  "resources/dge.27-10-2020.csv"
+          ;;filepath  "resources/dge.06-02-2021.csv"
           _ (println "reading csv...")
           r (lazy-read-csv filepath)]
-      (assert (= (count (first r)) 38)
+      (assert (= (count (first r)) 40)
               "Column count in DGE file has changed!")
       filepath)))
 
@@ -153,7 +153,7 @@
 
 (defn resultado
   [r]
-  (nth r 33))
+  (nth r 35))
 
 (defn resultado-lab
   [r]

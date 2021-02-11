@@ -14,7 +14,7 @@
                  [clj-jgit "1.0.0-beta3"]
                  [iota "1.1.3"]]
 
-  :jvm-opts ["-Xms2g"]
+  :jvm-opts ["-Xms8g"]
   :main ^:skip-aot covid19-mx-time-series.core
   :target-path "target/%s"
   :repl-options {
